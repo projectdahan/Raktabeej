@@ -128,10 +128,14 @@ app.post('/api/contact', async (req, res) => {
 
 // ── Serve Frontend in Production ──────────────────────────────
 if (process.env.NODE_ENV === 'production') {
+  // Adjust this path if your frontend build files are elsewhere
   const frontendPath = path.join(__dirname, '../frontend');
+
   app.use(express.static(frontendPath));
+
+  // Since your homepage is index.htm (not index.html), serve that explicitly
   app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(path.join(frontendPath, 'index.htm'));
   });
 }
 
