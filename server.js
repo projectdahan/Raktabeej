@@ -14,7 +14,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Connect to MongoDB using Render's provided environment variable.
+// Connect to MongoDB using Render’s provided environment variable.
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
     console.error("❌ MONGO_URI is missing. Make sure it's set in Render.");
@@ -149,9 +149,9 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(frontendPath));
 
     app.get(/^\/(?!api).*/, (req, res) => {
-        res.sendFile(path.join(frontendPath, 'index.html'), (err) => {
+        res.sendFile(path.join(frontendPath, 'index.htm'), (err) => {
             if (err) {
-                console.error("❌ Frontend index.html not found. Ensure it's included in the deployment.");
+                console.error("❌ Frontend index.htm not found. Ensure it's included in the deployment.");
                 res.status(500).send("Frontend file not found.");
             }
         });
