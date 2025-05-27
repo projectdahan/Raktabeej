@@ -25,7 +25,7 @@ mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // Avoid infinite waiting
+    serverSelectionTimeoutMS: 5000, // Prevent infinite waiting
     socketTimeoutMS: 45000,         // Better socket handling
   })
   .then(() => console.log('✅ MongoDB connected successfully'))
@@ -47,7 +47,7 @@ const donorSchema = new mongoose.Schema({
   address: String,
   lastDonationDate: Date,
   consent: { type: Boolean, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 const Donor = mongoose.model('Donor', donorSchema);
 
@@ -59,7 +59,7 @@ const requestSchema = new mongoose.Schema({
   hospital:       { type: String, required: true },
   contactPhone:   { type: String, required: true },
   additionalInfo: { type: String },
-  createdAt:      { type: Date, default: Date.now }
+  createdAt:      { type: Date, default: Date.now },
 });
 const Request = mongoose.model('Request', requestSchema);
 
@@ -68,7 +68,7 @@ const contactSchema = new mongoose.Schema({
   name:      { type: String, required: true },
   email:     { type: String, required: true },
   message:   { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 const ContactMessage = mongoose.model('ContactMessage', contactSchema);
 
@@ -149,18 +149,17 @@ app.post('/api/contact', async (req, res) => {
 /* ── SERVING THE FRONTEND IN PRODUCTION ───────────────────────── */
 
 // When in production, serve the static frontend if available.
-// Note the catch-all route here uses '/*' instead of '*' to avoid path-to-regexp errors.
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.resolve(__dirname, '../frontend');
   app.use(express.static(frontendPath));
   
-  // Use '/*' as the catch-all route
-  app.get('/*', (req, res) => {
+  // Use catch-all route "*" instead of "/*" to avoid path-to-regexp errors
+  app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
 
-/* ── START SERVER ─────────────────────────────────────────────── */
+/* ── START SERVER ───────────────────────────────────────────── */
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
