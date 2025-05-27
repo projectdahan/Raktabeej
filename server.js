@@ -6,15 +6,18 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const path = require('path');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+    origin: "https://raktabeej-frontend.onrender.com/", // Replace with your frontend URL
+    methods: "GET,POST",
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
-// Connect to MongoDB using Render’s provided environment variable.
+// Connect to MongoDB
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
     console.error("❌ MONGO_URI is missing. Make sure it's set in Render.");
@@ -22,8 +25,8 @@ if (!mongoURI) {
 }
 
 mongoose.connect(mongoURI, {
-    serverSelectionTimeoutMS: 5000, // Avoid infinite waiting
-    socketTimeoutMS: 45000,  // Ensure better handling
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
 }).then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => {
       console.error('❌ MongoDB connection error:', err);
@@ -141,22 +144,6 @@ app.post('/api/contact', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
-
-/* ── SERVING THE FRONTEND IN PRODUCTION ───────────────────────── */
-
-if (process.env.NODE_ENV === 'production') {
-    const frontendPath = path.join(__dirname, '..', 'frontend');
-    app.use(express.static(frontendPath));
-
-    app.get(/^\/(?!api).*/, (req, res) => {
-        res.sendFile(path.join(frontendPath, 'index.htm'), (err) => {
-            if (err) {
-                console.error("❌ Frontend index.htm not found. Ensure it's included in the deployment.");
-                res.status(500).send("Frontend file not found.");
-            }
-        });
-    });
-}
 
 /* ── START SERVER ───────────────────────────────────────────── */
 
