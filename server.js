@@ -1,4 +1,8 @@
-require('dotenv').config();
+// Only load .env in non-production environments
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -12,9 +16,24 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+const mongoURI = process.env.MONGO_URI;
+if (!mongoURI) {
+  console.error("❌ MONGO_URI environment variable not defined");
+  process.exit(1);
+}
+
+mongoose
+  .connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000, // Prevents infinite waiting
+    socketTimeoutMS: 45000,         // Better socket handling
+  })
   .then(() => console.log('✅ MongoDB connected successfully'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
 
 // ── MODELS ─────────────────────────────────────────────────────
 // Donor Model
@@ -28,7 +47,7 @@ const donorSchema = new mongoose.Schema({
   address: String,
   lastDonationDate: Date,
   consent: { type: Boolean, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 const Donor = mongoose.model('Donor', donorSchema);
 
@@ -40,7 +59,7 @@ const requestSchema = new mongoose.Schema({
   hospital:       { type: String, required: true },
   contactPhone:   { type: String, required: true },
   additionalInfo: { type: String },
-  createdAt:      { type: Date, default: Date.now }
+  createdAt:      { type: Date, default: Date.now },
 });
 const Request = mongoose.model('Request', requestSchema);
 
@@ -49,12 +68,12 @@ const contactSchema = new mongoose.Schema({
   name:      { type: String, required: true },
   email:     { type: String, required: true },
   message:   { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
 });
 const ContactMessage = mongoose.model('ContactMessage', contactSchema);
 
 // ── ROUTES ─────────────────────────────────────────────────────
-// Donors
+// Donors Routes
 app.get('/api/donors', async (req, res) => {
   try {
     const donors = await Donor.find().sort({ createdAt: -1 });
@@ -78,7 +97,7 @@ app.post('/api/donors', async (req, res) => {
   }
 });
 
-// Blood Requests
+// Blood Requests Routes
 app.get('/api/requests', async (req, res) => {
   try {
     const requests = await Request.find().sort({ createdAt: -1 });
@@ -102,7 +121,7 @@ app.post('/api/requests', async (req, res) => {
   }
 });
 
-// Contact Messages
+// Contact Messages Routes
 app.get('/api/contact', async (req, res) => {
   try {
     const messages = await ContactMessage.find().sort({ createdAt: -1 });
@@ -128,19 +147,15 @@ app.post('/api/contact', async (req, res) => {
 
 // ── Serve Frontend in Production ──────────────────────────────
 if (process.env.NODE_ENV === 'production') {
-  // Adjust this path if your frontend build files are elsewhere
-  const frontendPath = path.join(__dirname, '../frontend');
-
+  const frontendPath = path.resolve(__dirname, '../frontend');
   app.use(express.static(frontendPath));
-
-  // Since your homepage is index.htm (not index.html), serve that explicitly
   app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.htm'));
+    res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
 
 // ── Start Server ──────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
 });
