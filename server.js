@@ -1,5 +1,5 @@
 // Load .env variables only if not in production.
-// On Render in production, environment variables are provided via the secret file.
+// Render will use the .env secret for production.
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -16,7 +16,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Connect to MongoDB using the MONGO_URI from your environment variables
+// Connect to MongoDB using the MONGO_URI from environment variables.
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
   console.error("❌ MONGO_URI environment variable not defined");
@@ -150,18 +150,18 @@ app.post('/api/contact', async (req, res) => {
 
 /* ── SERVING THE FRONTEND IN PRODUCTION ───────────────────────── */
 
-// When in production, serve the static frontend if available.
+// Only if you are serving a frontend build
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.resolve(__dirname, '../frontend');
   app.use(express.static(frontendPath));
-  // Catch-all route to serve index.html for any other requests.
-  app.get('*', (req, res) => {
+
+  // Any route not starting with "/api" gets served the index.html
+  app.get(/^\/(?!api).*/, (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
 }
 
 /* ── START SERVER ───────────────────────────────────────────── */
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running at http://localhost:${PORT}`);
