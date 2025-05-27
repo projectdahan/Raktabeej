@@ -157,7 +157,7 @@ if (process.env.NODE_ENV === 'production') {
 
   // Any route not starting with "/api" gets served the index.html
   app.get(/^\/(?!api).*/, (req, res) => {
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(path.join(frontendPath, 'index.htm'));
   });
 }
 
