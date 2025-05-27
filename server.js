@@ -1,4 +1,5 @@
-// Only load .env in non-production environments
+// Load .env variables only if not in production.
+// On Render in production, environment variables are provided via the secret file.
 if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
@@ -15,18 +16,19 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// Connect to MongoDB
+// Connect to MongoDB using the MONGO_URI from your environment variables
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
   console.error("❌ MONGO_URI environment variable not defined");
   process.exit(1);
 }
+
 mongoose
   .connect(mongoURI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000, // Prevent infinite waiting
-    socketTimeoutMS: 45000,         // Better socket handling
+    serverSelectionTimeoutMS: 5000, // Prevents hanging on connection attempts
+    socketTimeoutMS: 45000,         // Provides better socket handling
   })
   .then(() => console.log('✅ MongoDB connected successfully'))
   .catch(err => {
@@ -152,8 +154,7 @@ app.post('/api/contact', async (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const frontendPath = path.resolve(__dirname, '../frontend');
   app.use(express.static(frontendPath));
-  
-  // Use catch-all route "*" instead of "/*" to avoid path-to-regexp errors
+  // Catch-all route to serve index.html for any other requests.
   app.get('*', (req, res) => {
     res.sendFile(path.join(frontendPath, 'index.html'));
   });
