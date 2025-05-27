@@ -11,11 +11,16 @@ const app = express();
 
 // Middleware
 const corsOptions = {
-    origin: "https://raktabeej-frontend.onrender.com/", // Replace with your frontend URL
+    origin: "https://your-frontend-service.com", // Replace with your frontend URL
     methods: "GET,POST",
 };
 app.use(cors(corsOptions));
 app.use(bodyParser.json());
+
+// Basic route to confirm backend is running
+app.get('/', (req, res) => {
+    res.send("Backend is running! Use API routes like /api/donors");
+});
 
 // Connect to MongoDB
 const mongoURI = process.env.MONGO_URI;
