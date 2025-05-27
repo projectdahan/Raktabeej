@@ -4,18 +4,23 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const app = express();
 
 // Middleware
 const corsOptions = {
-    origin: "https://your-frontend-service.com", // Replace with your frontend URL
+    origin: "https://raktabeej-frontend.onrender.com", // Your actual frontend URL
     methods: "GET,POST",
 };
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
+app.use(express.json());  // Use built-in body parser
+
+// Optional logging middleware (can remove if not needed)
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`);
+    next();
+});
 
 // Basic route to confirm backend is running
 app.get('/', (req, res) => {
@@ -25,18 +30,19 @@ app.get('/', (req, res) => {
 // Connect to MongoDB
 const mongoURI = process.env.MONGO_URI;
 if (!mongoURI) {
-    console.error("❌ MONGO_URI is missing. Make sure it's set in Render.");
+    console.error("❌ MONGO_URI is missing. Make sure it's set in .env");
     process.exit(1);
 }
 
 mongoose.connect(mongoURI, {
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
-}).then(() => console.log('✅ MongoDB connected successfully'))
-  .catch(err => {
-      console.error('❌ MongoDB connection error:', err);
-      process.exit(1);
-  });
+})
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+});
 
 /* ── MODEL DEFINITIONS ───────────────────────────────────────── */
 
